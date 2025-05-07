@@ -1,0 +1,57 @@
+# name: Deploy to Linux Server
+
+# on:
+#   push:
+#     branches:
+#       - main  # Change this if you're using a different branch
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout Code
+#       uses: actions/checkout@v3
+
+#     - name: Set up Node.js
+#       uses: actions/setup-node@v3
+#       with:
+#         node-version: '20.18.3'  # Ensure the correct version of Node.js is set up
+
+#     - name: Setup SSH
+#       run: |
+#         mkdir -p ~/.ssh
+#         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+#         chmod 600 ~/.ssh/id_rsa
+#         ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+#     - name: Deploy via SSH
+#       run: |
+#         ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+#           # Optional: source nvm if you're using it
+#           export NVM_DIR="$HOME/.nvm"
+#           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+#           # OR: force a known path to Node.js 20, adjust this if your node is elsewhere
+#           export PATH="/usr/local/bin:$PATH"
+
+#           echo "Node version:"
+#           node -v
+#           echo "NPM version:"
+#           npm -v
+
+#           cd ${{ secrets.DEPLOY_PATH }}
+
+#           # Pull the latest code
+#           git pull origin main
+
+#           # Install dependencies
+#           npm install
+
+#           # Restart the app using pm2 (or whatever process manager you're using)
+#           pm2 restart index.js  
+
+#           # If you need to start the server for the first time, you can use this:
+#           # pm2 start index.js 
+
+#         EOF
