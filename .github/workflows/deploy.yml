@@ -49,7 +49,7 @@ jobs:
           npm install
 
           # Restart the app using pm2 (or whatever process manager you're using)
-          pm2 restart index.js  
+          pm2 restart src/index.js  
 
           # If you need to start the server for the first time, you can use this:
           # pm2 start index.js 
