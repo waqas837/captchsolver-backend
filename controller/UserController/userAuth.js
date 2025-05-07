@@ -109,7 +109,7 @@ exports.emailVerification = async (req, res) => {
   const userid = req.params.id;
   if (await isUserVerified(userid)) {
     return res.send(
-      `Your email is already verified. <a href='${process.env.Frontend_URL}/openup-html/dark/log-in.html'>Login here</a>`
+      `Your email is already verified. <a href='${process.env.Frontend_URL}/log-in'>Login here</a>`
     );
   }
 
@@ -305,7 +305,7 @@ async function generateCaptchaKey() {
       // this url is cached by bunny cdn
       url: "https://api.captchasolver.ai/admin/key/api/gen",
       headers: {
-        "x-cai-key": "63los93h1g95782hfjva8u4hf9kaghcq909",
+        "x-cai-key": process.env.generateCaptchaKey_xcai,
         "Content-Type": "application/json",
       },
       data: data,
@@ -366,7 +366,7 @@ const createRealInvoice = async (userid, currency, amount) => {
     currencyInCode: currency,
     comment: userid,
     publicComment: `Order #${uuid}`,
-    callbackUrl: `https://5c6c-119-73-112-36.ngrok-free.app/webhook`,
+    callbackUrl: `${process.env.Backend_URL}/webhook`,
     redirectUrl: "https://marketplace.com/cart",
     isBayerPaysService: true,
     isAwaitRequisites: true,
@@ -381,8 +381,7 @@ const createRealInvoice = async (userid, currency, amount) => {
       {
         headers: {
           "Content-Type": "application/json",
-          "x-api-key":
-            "0a1570876fd8e149646784671a7f94efd9fae6e95a611f0f685c23631231420f",
+          "x-api-key": process.env.ALPHABIT_XAPI,
         },
       }
     );

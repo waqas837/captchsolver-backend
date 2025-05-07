@@ -14,12 +14,12 @@ exports.sendEmail = (to, id, user_type, isForgotPassword = false) => {
     }
     // Create a transporter using SMTP
     const transporter = nodemailer.createTransport({
-      host: "smtp.mymangomail.com",
+      host: process.env.host,
       port: 465,
       secure: true, // true for port 465 (SSL)
       auth: {
-        user: "hello@captchasolver.ai",
-        pass: "BFQk8JVR7Dj6y0r4", // WARNING: do not expose in public repositories
+        user: process.env.user,
+        pass: process.env.pass, // WARNING: do not expose in public repositories
       },
     });
 
@@ -27,7 +27,7 @@ exports.sendEmail = (to, id, user_type, isForgotPassword = false) => {
     transporter.sendMail({
       from: {
         name: "Captcha Solver",
-        address: "hello@captchasolver.ai",
+        address: process.env.user,
       },
       to, // list of receivers
       subject: "Email Confirmation!", // Subject line
