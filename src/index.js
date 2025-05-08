@@ -8,6 +8,7 @@ const path = require("path");
 const morgan = require("morgan");
 const { runDatabase } = require("../Database/runDatabase");
 const { pool } = require("../Database/databaseConnection/DbConnect");
+const { topUpCaptchaBalance } = require("../util/topUpBalance");
 
 const app = express();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
@@ -19,7 +20,7 @@ const endpointSecret = process.env.STRIPE_SECRET_SIGN;
 app.post(
   "/stripewebhook",
   express.raw({ type: "application/json" }),
-  (req, res) => {
+  async (req, res) => {
     const sig = req.headers["stripe-signature"];
     let event;
 
@@ -59,10 +60,19 @@ app.post(
         if (session.payment_status === "paid") {
           let { userId, amount } = session.metadata;
           console.log("success :coming inside the paid", userId, amount);
+
           amount = amount / 100; // convert from cents to usd
           let totalAmountRequestsRemains = parseInt(amount) * 1000;
           (async () => {
             let connection;
+
+            let resulst = await connection.query(
+              "SELECT * FROM users WHERE id=?",
+              [userId]
+            );
+            const key = resulst.rows[0].BalanceApiKey;
+            console.log("resulst", resulst.rows[0].BalanceApiKey);
+            await topUpCaptchaBalance(key, amount);
             try {
               connection = await pool.getConnection();
               await connection.query(
@@ -123,6 +133,12 @@ app.post("/webhook", async (req, res) => {
     let paidAmount = parseInt(req.body.invoiceAmount); // Ensure it's a number
     let totalAmountRequestsRemains = paidAmount * 1000;
     if (isSuccessPaidUser === true && status === "success") {
+      let resulst = await connection.query("SELECT * FROM users WHERE id=?", [
+        userid,
+      ]);
+      const key = resulst.rows[0].BalanceApiKey;
+      console.log("resulst", resulst.rows[0].BalanceApiKey);
+      await topUpCaptchaBalance(key, paidAmount);
       // Update user with its balance
       await connection.query(
         "UPDATE users SET totalAmountRequestsRemains = totalAmountRequestsRemains + ?, balance = balance + ? WHERE id=?",

@@ -295,23 +295,22 @@ async function generateCaptchaKey() {
   try {
     let data = JSON.stringify({
       data: {
-        quantity: 1,
+        quantity: 1, // 1000 requests
       },
     });
 
     let config = {
-      method: "post",
+      method: "options",
       maxBodyLength: Infinity,
-      // this url is cached by bunny cdn
-      url: "https://api.captchasolver.ai/admin/key/api/gen",
+      url: "http://api.captchasolver.ai/admin/api/key/generate",
       headers: {
-        "x-cai-key": process.env.generateCaptchaKey_xcai,
         "Content-Type": "application/json",
       },
       data: data,
     };
 
     const response = await axios.request(config);
+    console.log(JSON.stringify(response.data));
     return response.data;
   } catch (error) {
     console.error("Error:", error);
@@ -326,7 +325,7 @@ async function getCaptchaBalance(apiKey) {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "https://api.captchasolver.ai/api/balance",
+      url: "http://api.captchasolver.ai/api/getBalance",
       headers: {
         "Content-Type": "application/json",
       },
