@@ -193,17 +193,35 @@ exports.reset_user_password = async (req, res) => {
 exports.getuserinfo = async (req, res) => {
   let userid = req.userid;
   let conection = await pool.getConnection();
+
   try {
-    // find user id
-    let [result] = await conection.query("SELECT * FROM users where id=?", [
+    // Get user info
+    let [result] = await conection.query("SELECT * FROM users WHERE id=?", [
       userid,
     ]);
+    const user = result[0];
+
+    // If BalanceApiKey exists, fetch external balance
+    if (user?.BalanceApiKey) {
+      const response = await axios.post(
+        "http://api.captchasolver.ai/api/getBalance",
+        {
+          key: user.BalanceApiKey,
+        }
+      );
+
+      if (response.data?.balance) {
+        user.externalBalance = response.data.balance;
+      }
+    }
+
     return res.json({
       success: true,
-      result,
+      result: [user],
     });
   } catch (error) {
     console.log("error", error);
+    return res.status(500).json({ success: false, message: "Internal error" });
   } finally {
     conection.release();
   }
@@ -277,10 +295,10 @@ const userTrialAddUp = async (userid) => {
   try {
     let key = await generateCaptchaKey();
     let captchaBalance = await getCaptchaBalance(key.key);
-    // >>>First debug from here...are these values 
+    // >>>First debug from here...are these values
     // are going it side the db or not
-    console.log("key:BalanceApiKey>>>", key.key)
-    console.log("captchaBalance:totalAmountRequestsRemains>>", captchaBalance)
+    console.log("Notice:key:BalanceApiKey>>>", key.key);
+    console.log("captchaBalance:totalAmountRequestsRemains>>", captchaBalance);
     const uuid = randomUUID();
     let [rows] = await conection.query(
       "UPDATE users SET apiTokenDashboard=?, BalanceApiKey=?, currentPlan=?, totalAmountRequestsRemains=?, balance=? WHERE id=?",

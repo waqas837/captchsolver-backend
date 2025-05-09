@@ -43,6 +43,7 @@ jobs:
           cd ${{ secrets.DEPLOY_PATH }}
 
           # Pull the latest code
+          git reset --hard HEAD
           git pull origin main
 
           # Install dependencies
