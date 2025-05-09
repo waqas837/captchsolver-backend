@@ -279,7 +279,7 @@ const userTrialAddUp = async (userid) => {
     let captchaBalance = await getCaptchaBalance(key.key);
     // >>>First debug from here...are these values 
     // are going it side the db or not
-    console.log("key:BalanceApiKey>>>", key)
+    console.log("key:BalanceApiKey>>>", key.key)
     console.log("captchaBalance:totalAmountRequestsRemains>>", captchaBalance)
     const uuid = randomUUID();
     let [rows] = await conection.query(
