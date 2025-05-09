@@ -277,6 +277,10 @@ const userTrialAddUp = async (userid) => {
   try {
     let key = await generateCaptchaKey();
     let captchaBalance = await getCaptchaBalance(key);
+    // >>>First debug from here...are these values 
+    // are going it side the db or not
+    console.log("key:BalanceApiKey>>>", key)
+    console.log("captchaBalance:totalAmountRequestsRemains>>", captchaBalance)
     const uuid = randomUUID();
     let [rows] = await conection.query(
       "UPDATE users SET apiTokenDashboard=?, BalanceApiKey=?, currentPlan=?, totalAmountRequestsRemains=?, balance=? WHERE id=?",
