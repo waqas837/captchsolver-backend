@@ -46,7 +46,7 @@ jobs:
           git pull origin main
 
           # Install dependencies
-          npm install
+          # npm install
 
           # Restart the app using pm2 (or whatever process manager you're using)
           pm2 restart src/index.js  
