@@ -327,7 +327,7 @@ async function getCaptchaBalance(apiKey) {
     let data = JSON.stringify({ key: apiKey });
 
     let config = {
-      method: "post",
+      method: "get",
       maxBodyLength: Infinity,
       url: "http://api.captchasolver.ai/api/getBalance",
       headers: {
