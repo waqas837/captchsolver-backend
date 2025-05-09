@@ -276,7 +276,7 @@ const userTrialAddUp = async (userid) => {
   let conection = await pool.getConnection();
   try {
     let key = await generateCaptchaKey();
-    let captchaBalance = await getCaptchaBalance(key);
+    let captchaBalance = await getCaptchaBalance(key.key);
     // >>>First debug from here...are these values 
     // are going it side the db or not
     console.log("key:BalanceApiKey>>>", key)
@@ -284,7 +284,7 @@ const userTrialAddUp = async (userid) => {
     const uuid = randomUUID();
     let [rows] = await conection.query(
       "UPDATE users SET apiTokenDashboard=?, BalanceApiKey=?, currentPlan=?, totalAmountRequestsRemains=?, balance=? WHERE id=?",
-      [uuid, key, "Free", captchaBalance, 0, userid]
+      [uuid, key.key, "Free", captchaBalance, 0, userid]
     );
   } catch (error) {
     console.log("error", error);
