@@ -42,12 +42,17 @@ jobs:
 
           cd ${{ secrets.DEPLOY_PATH }}
 
-          # Pull the latest code
+          # Ensure there are no untracked files before pulling
+          git clean -fd  # Removes untracked files and directories
+          
+          # Reset local repository and ensure we're up to date with the main branch
           git reset --hard HEAD
+          git fetch origin
+          git checkout main  # Ensure you're on the correct branch
           git pull origin main
 
-          # Install dependencies
-          # npm install
+          # Install dependencies (if you need to)
+          npm install
 
           # Restart the app using pm2 (or whatever process manager you're using)
           pm2 restart src/index.js  
