@@ -34,7 +34,7 @@ router.get("/auth", async (req, res) => {
     return res.status(401).json({ success: false, message: "Unauthorized" });
   }
 });
-router.get("/getuserinfo", blockUnAuthorizeAccess_User, getuserinfo);
+router.get("/getuserinfo", blockUnAuthorizeAccess_User, getuserinfo); 
 router.post("/createInvoice", blockUnAuthorizeAccess_User, createInvoice);
 
 // Stripe payment method
