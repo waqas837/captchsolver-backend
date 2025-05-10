@@ -14,7 +14,7 @@ const app = express();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // stripe webhook
 // Webhook Endpoint
-const endpointSecret = process.env.STRIPE_SECRET_SIGN;
+const endpointSecret = "whsec_Wrh1iVkhvdxQpAzkwpQDBy3sAlfNU8qh";
 
 // Middleware to get raw body - MUST be before express.json()
 app.post(
