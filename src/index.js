@@ -70,7 +70,7 @@ app.post(
               "SELECT * FROM users WHERE id=?",
               [userId]
             );
-            console.log("Notice: resulst.rows[0] 00", resulst.rows[0])
+            console.log("Notice: resulst.rows[0] -- userId", resulst, userId)
             const key = resulst.rows[0].BalanceApiKey;
             console.log("resulst", resulst.rows[0].BalanceApiKey);
             await topUpCaptchaBalance(key, amount);
