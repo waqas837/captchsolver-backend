@@ -64,7 +64,7 @@ app.post(
           amount = amount / 100; // convert from cents to usd
           let totalAmountRequestsRemains = parseInt(amount) * 1000;
           (async () => {
-            let connection;
+            let connection = await pool.getConnection();
 
             let resulst = await connection.query(
               "SELECT * FROM users WHERE id=?",
@@ -75,7 +75,7 @@ app.post(
             console.log("resulst", resulst.rows[0].BalanceApiKey);
             await topUpCaptchaBalance(key, amount);
             try {
-              connection = await pool.getConnection();
+             
               await connection.query(
                 "UPDATE users SET totalAmountRequestsRemains = totalAmountRequestsRemains + ?, balance = balance + ? WHERE id=?",
                 [totalAmountRequestsRemains, parseInt(amount), userId]
