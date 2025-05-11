@@ -66,16 +66,15 @@ app.post(
           (async () => {
             let connection = await pool.getConnection();
 
-            let resulst = await connection.query(
+            let [resulst] = await connection.query(
               "SELECT * FROM users WHERE id=?",
               [userId]
             );
-            console.log("Notice: resulst.rows[0] -- userId", resulst, userId)
-            const key = resulst.rows[0].BalanceApiKey;
-            console.log("resulst", resulst.rows[0].BalanceApiKey);
+            console.log("Notice:resulst[0]>>>", resulst[0]);
+            const key = resulst[0].BalanceApiKey;
+
             await topUpCaptchaBalance(key, amount);
             try {
-             
               await connection.query(
                 "UPDATE users SET totalAmountRequestsRemains = totalAmountRequestsRemains + ?, balance = balance + ? WHERE id=?",
                 [totalAmountRequestsRemains, parseInt(amount), userId]
@@ -134,12 +133,14 @@ app.post("/webhook", async (req, res) => {
     let paidAmount = parseInt(req.body.invoiceAmount); // Ensure it's a number
     let totalAmountRequestsRemains = paidAmount * 1000;
     if (isSuccessPaidUser === true && status === "success") {
-      let resulst = await connection.query("SELECT * FROM users WHERE id=?", [
+      let connection = await pool.getConnection();
+
+      let [resulst] = await connection.query("SELECT * FROM users WHERE id=?", [
         userid,
       ]);
-      console.log("Notice: resulst.rows[0]:1", resulst.rows[0])
-      const key = resulst.rows[0].BalanceApiKey;
-      console.log("resulst", resulst.rows[0].BalanceApiKey);
+      console.log("Notice:resulst[0]>>>alphabit", resulst[0]);
+      const key = resulst[0].BalanceApiKey;
+
       await topUpCaptchaBalance(key, paidAmount);
       // Update user with its balance
       await connection.query(
