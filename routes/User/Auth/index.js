@@ -18,7 +18,6 @@ router.post("/login", userSignIn);
 router.get("/verify/email/:id", emailVerification);
 router.post("/forgotpassword/:email", sendEmail_for_forgotPassword);
 router.put("/reset-password/:userid/:password", reset_user_password);
-router.put("/reset-password/:userid/:password", reset_user_password);
 router.get("/auth", async (req, res) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
@@ -34,7 +33,7 @@ router.get("/auth", async (req, res) => {
     return res.status(401).json({ success: false, message: "Unauthorized" });
   }
 });
-router.get("/getuserinfo", blockUnAuthorizeAccess_User, getuserinfo); 
+router.get("/getuserinfo", blockUnAuthorizeAccess_User, getuserinfo);
 router.post("/createInvoice", blockUnAuthorizeAccess_User, createInvoice);
 
 // Stripe payment method
