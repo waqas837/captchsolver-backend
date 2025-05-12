@@ -12,46 +12,92 @@ exports.userSignUp = async (req, res) => {
     let username = req.body.username;
     let email = req.body.email;
     let password = req.body.password;
+    const captchaToken = req.body["h-captcha-response"];
+
+    // Check if the CAPTCHA token exists
+    if (!captchaToken) {
+      return res.status(400).json({
+        success: false,
+        message: "CAPTCHA verification required",
+      });
+    }
+
+    // Verify the CAPTCHA with hCaptcha
+    const secret = process.env.HCAPTCHA_SECRET;
+    const verifyUrl = `https://hcaptcha.com/siteverify`;
+
+    // Create form data for POST request
+    const formData = new URLSearchParams();
+    formData.append("secret", secret);
+    formData.append("response", captchaToken);
+
+    // Call hCaptcha verification API with proper content-type and body format
+    const verifyRes = await axios.post(verifyUrl, formData.toString(), {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    console.log("hCaptcha verification response:", verifyRes.data);
+
+    if (!verifyRes.data.success) {
+      return res.status(400).json({
+        success: false,
+        message: "CAPTCHA verification failed",
+        errors: verifyRes.data["error-codes"],
+      });
+    }
 
     // First check if user exists
     let [isUserExists] = await conection.query(
-      "SELECT * FROM users WHERE email=? AND password=?",
-      [email, password]
+      "SELECT * FROM users WHERE email=?",
+      [email]
     );
     console.log("isUserExists>>", isUserExists.length);
     if (isUserExists.length > 0) {
       console.log("Yes User exists");
-      res.json({
+      return res.json({
+        success: false,
         status: "userExists",
         message: "Account is already registered with this email.",
       });
-      return;
     }
+
     let userid = uuidv4();
     let [rows] = await conection.query(
       "INSERT INTO users (id, username, email, password) VALUES (?,?,?,?)",
       [userid, username, email, password]
     );
     console.log("rows.affectedRows", rows.affectedRows);
+
     if (rows.affectedRows) {
       // send a confimation email.
       let message = sendEmail(email, userid, "USER");
       if (message === "email sent") {
-        res.json({
+        return res.json({
           success: true,
           status: "confirmEmail",
-          message: "Please confirm you email!",
+          message: "Please confirm your email!",
         });
       } else if (message === "email sent failed") {
-        res.json({
+        return res.json({
           success: false,
-          message: "Email sent failed.",
+          message:
+            "Account created but email verification failed. Please contact support.",
         });
       }
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create account. Please try again.",
+      });
     }
   } catch (error) {
-    console.log(`error during sigin the data ${error}`);
-    console.log(error);
+    console.log(`Error during signup: ${error}`);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   } finally {
     conection.release();
   }
@@ -60,23 +106,70 @@ exports.userSignUp = async (req, res) => {
 exports.userSignIn = async (req, res) => {
   let conection = await pool.getConnection();
   try {
-    let email = req.body.email;
-    let password = req.body.password;
-    // First check if user exists
+    const {
+      email,
+      password,
+      "h-captcha-response": captchaToken,
+      rememberMe,
+    } = req.body;
+
+    // Check if the CAPTCHA token exists
+    if (!captchaToken) {
+      return res.status(400).json({ message: "CAPTCHA token missing" });
+    }
+
+    // Verify the CAPTCHA with hCaptcha
+    const secret = process.env.HCAPTCHA_SECRET;
+    const verifyUrl = `https://hcaptcha.com/siteverify`;
+
+    // Create form data for POST request
+    const formData = new URLSearchParams();
+    formData.append("secret", secret);
+    formData.append("response", captchaToken);
+
+    // Call hCaptcha verification API with proper content-type and body format
+    const verifyRes = await axios.post(verifyUrl, formData.toString(), {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    console.log("verifyRes data:", verifyRes.data);
+
+    if (!verifyRes.data.success) {
+      return res.status(400).json({
+        message: "CAPTCHA verification failed",
+        errors: verifyRes.data["error-codes"],
+      });
+    }
+
+    // If CAPTCHA verification is successful, proceed with the login
     let [isUserExists] = await conection.query(
       "SELECT * FROM users WHERE email=? AND password=?",
       [email, password]
     );
     console.log("isUserExists>>", isUserExists.length);
+
+    // Check if the user exists and is verified
     if (isUserExists.length > 0 && isUserExists[0].verified === 1) {
       console.log("Yes User exists");
-      const token = jwt.sign(
-        { userid: isUserExists[0].id },
-        process.env.Jwt_Secret_User,
-        {
-          expiresIn: "12h",
-        }
-      );
+      let token;
+      if (rememberMe) {
+        // Create JWT token for the user
+        token = jwt.sign(
+          { userid: isUserExists[0].id },
+          process.env.Jwt_Secret_User,
+          { expiresIn: "7d" }
+        );
+      } else {
+        // Create JWT token for the user
+        token = jwt.sign(
+          { userid: isUserExists[0].id },
+          process.env.Jwt_Secret_User,
+          { expiresIn: "15m" }
+        );
+      }
+
       res.status(200).json({
         userDetails: { id: isUserExists[0].id, email: isUserExists[0].email },
         token,
@@ -85,20 +178,22 @@ exports.userSignIn = async (req, res) => {
       });
       return;
     }
+
+    // If user exists but is not verified
     if (isUserExists.length > 0 && isUserExists[0].verified === 0) {
-      res.status(401).json({
+      return res.status(401).json({
         status: "emailNotConfirmed",
-        message: "Attempt Failed.",
+        message: "Account not confirmed. Please verify your email.",
       });
-      return;
     }
-    if (!isUserExists || isUserExists.length === 0) {
-      res.json({ status: "unauthorized" });
-      return;
-    }
+
+    // If user doesn't exist
+    return res
+      .status(401)
+      .json({ status: "unauthorized", message: "Invalid credentials" });
   } catch (error) {
-    console.log(`error during sigin the data ${error}`);
-    console.log(error);
+    console.error(`Error during sign-in: ${error}`);
+    return res.status(500).json({ message: "Internal Server Error" });
   } finally {
     conection.release();
   }
