@@ -17,7 +17,7 @@ router.post("/signup", userSignUp);
 router.post("/login", userSignIn);
 router.get("/verify/email/:id", emailVerification);
 router.post("/forgotpassword/:email", sendEmail_for_forgotPassword);
-router.put("/reset-password/:userid/:password", reset_user_password);
+router.put("/reset-password/:userid", reset_user_password);
 router.get("/auth", async (req, res) => {
   try {
     const token = req.headers.authorization.split(" ")[1];

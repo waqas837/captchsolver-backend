@@ -172,7 +172,7 @@ exports.sendEmail_for_forgotPassword = async (req, res) => {
 exports.reset_user_password = async (req, res) => {
   let conection = await pool.getConnection();
   const userid = req.params.userid;
-  const password = req.params.password;
+  const password = req.body.password;
   try {
     let [rows] = await conection.query(
       "UPDATE users SET password=?, verified=? WHERE id=?",
