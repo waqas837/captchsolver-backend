@@ -76,8 +76,8 @@ app.post(
             await topUpCaptchaBalance(key, amount);
             try {
               await connection.query(
-                "UPDATE users SET totalAmountRequestsRemains = totalAmountRequestsRemains + ?, balance = balance + ? WHERE id=?",
-                [totalAmountRequestsRemains, parseInt(amount), userId]
+                "UPDATE users SET payment_method=?, totalAmountRequestsRemains = totalAmountRequestsRemains + ?, balance = balance + ? WHERE id=?",
+                ["stripe", totalAmountRequestsRemains, parseInt(amount), userId]
               );
             } catch (error) {
               console.log(error);
@@ -144,8 +144,8 @@ app.post("/webhook", async (req, res) => {
       await topUpCaptchaBalance(key, paidAmount);
       // Update user with its balance
       await connection.query(
-        "UPDATE users SET totalAmountRequestsRemains = totalAmountRequestsRemains + ?, balance = balance + ? WHERE id=?",
-        [totalAmountRequestsRemains, paidAmount, userid]
+        "UPDATE users SET payment_method=?, totalAmountRequestsRemains = totalAmountRequestsRemains + ?, balance = balance + ? WHERE id=?",
+        ["Alphabit(Crypto)", totalAmountRequestsRemains, paidAmount, userid]
       );
     }
     res.json({ success: "ok" });
