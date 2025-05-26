@@ -488,6 +488,9 @@ const createRealInvoice = async (userid, currency, amount) => {
     isAwaitRequisites: true,
     invoiceAssetCode: "USDT",
     invoiceAmount: parseFloat(amount),
+    invoiceTpl: {
+      locales: ["ru", "en"],
+    },
   };
 
   try {
